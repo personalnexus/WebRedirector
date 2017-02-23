@@ -4,10 +4,11 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using WebRedirectorLibrary.StatisticsLogging;
 
 namespace WebRedirectorLibrary
 {
-    public class WebServer: IDisposable
+    public class WebServer: IDisposable, IWebServerStatisticsProvider
     {
         private HttpListener _httpListener;
         private Dictionary<string, WebResponderInfo> _respondersByPath;
@@ -31,21 +32,26 @@ namespace WebRedirectorLibrary
 
         private void ProcessRequests()
         {
-            while (_httpListener.IsListening)
+            // copy to local, because field is nulled when listener is stopped
+            HttpListener httpListener = _httpListener;
+            if (httpListener != null)
             {
-                try
+                while (httpListener.IsListening)
                 {
-                    HttpListenerContext context = _httpListener.GetContext();
-                    ProcessRequest(context);
-                }
-                catch (Exception exception)
-                {
-                    // Ignore exceptions if _httpListener has been stopped
-                    if (_httpListener.IsListening)
-                    {   
-                        OnErrorOccured(new WebServerErrorOccuredEventArgs("An unexpected error occurred while processing requests.", exception));
+                    try
+                    {
+                        HttpListenerContext context = httpListener.GetContext();
+                        ProcessRequest(context);
                     }
-                    continue;
+                    catch (Exception exception)
+                    {
+                        // Ignore exceptions if _httpListener has been stopped
+                        if (httpListener.IsListening)
+                        {
+                            OnErrorOccured(new WebServerErrorOccuredEventArgs("An unexpected error occurred while processing requests.", exception));
+                        }
+                        continue;
+                    }
                 }
             }
         }

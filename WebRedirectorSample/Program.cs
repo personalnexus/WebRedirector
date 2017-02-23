@@ -1,6 +1,8 @@
 ﻿using System;
-using System.Threading;
+using System.Diagnostics;
+using System.IO;
 using WebRedirectorLibrary;
+using WebRedirectorLibrary.StatisticsLogging;
 
 namespace WebRedirectorSample
 {
@@ -13,28 +15,21 @@ namespace WebRedirectorSample
             options.Responders.Add(new WebRedirectionResponder("msdn", "https://msdn.microsoft.com/en-us/default.aspx"));
             options.Responders.Add(new WebRedirectionResponder("github", "https://github.com/personalnexus"));
 
+            string logFileName = Path.GetTempFileName();
+
             using (var webServer = new WebServer())
             {
                 webServer.ErrorOccured += LogError;
                 webServer.Start(options);
-                
-                using (var hitCountTimer = new Timer(LogHitCounts, webServer, 10000, 10000))
+
+                using (var logger = new WebStatisticsCsvFileLogger(logFileName, webServer, TimeSpan.FromSeconds(10)))
                 {
-                    Console.WriteLine("Web server is running at " + options.UrlPrefix + ". Press any key to stop it.");
+                    Console.WriteLine("{0:HH-mm-ss}: Web server is running at '{1}'. Press any key to stop it.", DateTime.Now, options.UrlPrefix);
                     Console.ReadKey();
                 }
             }
-        }
 
-        public static void LogHitCounts(object state)
-        {
-            var webServer = (WebServer)state;
-            WebServerStatistics statistics = webServer.GetStatistics();
-            Console.WriteLine(string.Format("{0:HH-mm-ss} Web Server Statistics:", statistics.Timestamp));
-            foreach (WebResponderStatistics responderStatistics in statistics.Responders)
-            {
-                Console.WriteLine(string.Format("{0}: {1} hits", responderStatistics.Path, responderStatistics.HitCount));
-            }
+            Process.Start("notepad", logFileName);
         }
 
         public static void LogError(object sender, WebServerErrorOccuredEventArgs eventArgs)
