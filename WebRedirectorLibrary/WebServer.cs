@@ -18,7 +18,7 @@ namespace WebRedirectorLibrary
         {
             if (_httpListener != null)
             {
-                throw new InvalidOperationException(string.Format("Cannot call {0} when instance has already been started.", nameof(WebServer.Start)));
+                throw new InvalidOperationException($"Cannot call {nameof(WebServer.Start)} again when instance has already been started.");
             }
 
             _respondersByPath = options.Responders.ToDictionary(x => "/" + x.Path, x => new WebResponderInfo(x));
@@ -69,9 +69,8 @@ namespace WebRedirectorLibrary
 
         private void ProcessRequest(HttpListenerContext context)
         {
-            WebResponderInfo responder;
             string path = context.Request.Url.AbsolutePath;
-            if (!_respondersByPath.TryGetValue(path, out responder))
+            if (!_respondersByPath.TryGetValue(path, out WebResponderInfo responder))
             {
                 Interlocked.Increment(ref _invalidRequestCount);
                 context.Response.StatusCode = (int)HttpStatusCode.NotFound;
@@ -85,7 +84,7 @@ namespace WebRedirectorLibrary
                 }
                 catch (Exception e)
                 {
-                    OnErrorOccured(new WebServerErrorOccuredEventArgs(string.Format("An error occurred while processing a request for {0}", context.Request.RawUrl), e));
+                    OnErrorOccured(new WebServerErrorOccuredEventArgs($"An error occurred while processing a request for {context.Request.RawUrl}", e));
                 }
             }
         }

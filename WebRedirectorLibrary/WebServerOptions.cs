@@ -6,6 +6,13 @@ namespace WebRedirectorLibrary
     {
         public string UrlPrefix { get; set; }
 
-        public IList<IWebResponder> Responders { get; set; } = new List<IWebResponder>();
+        public IList<IWebResponder> Responders { get; } = new List<IWebResponder>();
+
+        public WebRedirectionResponder AddRedirect(string path, string redirectTarget)
+        {
+            var result = new WebRedirectionResponder(path, redirectTarget);
+            Responders.Add(result);
+            return result;
+        }
     }
 }

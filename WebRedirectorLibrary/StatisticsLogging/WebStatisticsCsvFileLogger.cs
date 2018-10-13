@@ -21,6 +21,11 @@ namespace WebRedirectorLibrary.StatisticsLogging
 
         private IEnumerable<string> StatisticsToCsv(WebServerStatistics statistics)
         {
+            string GetCsvLine(string key, object value)
+            {
+                return $"{DateTime.Now:yyyy-MM-dd HH-mm-ss};{key};{value}";
+            }
+
             if (statistics.InvalidRequestCount != 0)
             {
                 yield return GetCsvLine("#InvalidRequests", statistics.InvalidRequestCount);
@@ -29,12 +34,6 @@ namespace WebRedirectorLibrary.StatisticsLogging
             {
                 yield return GetCsvLine(responder.Path, responder.HitCount);
             }
-        }
-
-        private string GetCsvLine(string key, object value)
-        {
-            string line = string.Format("{0:yyyy-MM-dd HH-mm-ss};{1};{2}", DateTime.Now, key, value);
-            return line;
         }
     }
 }

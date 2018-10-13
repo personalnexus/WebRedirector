@@ -10,7 +10,7 @@ namespace WebRedirectorLibrary
             Exception = exception;
         }
 
-        public string ErrorMessage { get; private set; }
-        public Exception Exception { get; private set; }
+        public string ErrorMessage { get; }
+        public Exception Exception { get; }
     }
 }
